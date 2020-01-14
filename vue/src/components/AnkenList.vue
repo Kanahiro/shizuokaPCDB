@@ -30,6 +30,7 @@
         name: 'AnkensList',
         data() {
             return {
+                filterd:[]
             }
         },
         props: {

@@ -20,7 +20,7 @@
 
             <Vue2LeafletMarkerCluster :options="clusterOptions" >
                 <LMarker v-for="anken in ankens" :key="anken.no" :lat-lng="makeLatLng(anken)" >
-                    <LPopup :content="makeAnchor(anken)"></LPopup>
+                    <LPopup :content="makeAnchor(anken)" @click="markerClicked(anken)"></LPopup>
                 </LMarker>
             </Vue2LeafletMarkerCluster>
         </l-map>
@@ -61,6 +61,7 @@
                 clusterOptions:{
                     disableClusteringAtZoom: 15
                 },
+                markerContent:""
             }
         },
         props: {
@@ -73,6 +74,9 @@
             makeAnchor: function(anken) {
                 return "<a href='https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + anken.no + "'>" + anken.name + "</a>"
             },
+            markerClicked: function(anken) {
+                console.log("clicked")
+            }
         },
     }
 </script>

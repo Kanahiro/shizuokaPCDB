@@ -10,8 +10,8 @@
                     <b-modal id="modal-about" title="about" hide-footer>
                         <p class="my-4">
                             このサイトは、静岡県が運営する<a href="https://pointcloud.pref.shizuoka.jp/">Shizuoka Point Cloud DB</a>で
-                            公開されているデータを探しやすくする事を目的に開発されました。
-                            ご意見・お問い合わせは<a href="https://twitter.com/kanahiro_iguchi">Twitterアカウント</a>までどうぞ。
+                            公開されている貴重なデータを、より探しやすくする事を目的に開発されました。
+                            ご意見・お問い合わせは<a href="https://twitter.com/kanahiro_iguchi">開発者のTwitterアカウント</a>までどうぞ。
                         </p>
                     </b-modal>
                 </b-navbar-nav>
