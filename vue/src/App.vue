@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Header />
-    <MapPane @onGetData="reloadData"/>
+    <MapPane :ankens="ankens"/>
     <AnkenList v-if="ankens.length > 0" :ankens="ankens" />
     <Footer />
   </div>
@@ -26,10 +26,27 @@ export default {
       ankens:[]
     }
   },
-  methods: {
-    reloadData: function(ankens) {
-      this.ankens = ankens
-    }
+  created() {
+            let vm = this
+            fetch("/markers")
+            .then(response => {
+                return response.json()
+            })
+            .then(data => {
+                vm.ankens = data.ankenList.sort(function (a, b) {
+                    if (a.no < b.no) {
+                        return -1
+                    }
+                    if (a.no > b.no) {
+                        return 1
+                    }
+                    return 0 
+                })
+            })
+            .catch(error => {
+                console.log(error)
+                alert("エラーが発生しました。")
+            });
   }
 }
 </script>

@@ -58,11 +58,13 @@
                     url: 'https://tile.openstreetmap.jp/{z}/{x}/{y}.png',
                     attribution: "map data © OpenStreetMap contributors"
                 },
-                ankens:[],
                 clusterOptions:{
-                    disableClusteringAtZoom: 16
+                    disableClusteringAtZoom: 15
                 },
             }
+        },
+        props: {
+            ankens:Array
         },
         methods: {
             makeLatLng: function(anken) {
@@ -72,29 +74,6 @@
                 return "<a href='https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + anken.no + "'>" + anken.name + "</a>"
             },
         },
-        created() {
-            let vm = this
-            fetch("/markers")
-            .then(response => {
-                return response.json()
-            })
-            .then(data => {
-                vm.ankens = data.ankenList.sort(function (a, b) {
-                    if (a.no < b.no) {
-                        return -1
-                    }
-                    if (a.no > b.no) {
-                        return 1
-                    }
-                    return 0 
-                })
-                vm.$emit("onGetData", vm.ankens)
-            })
-            .catch(error => {
-                console.log(error)
-                alert("エラーが発生しました。")
-            });
-        }
     }
 </script>
 

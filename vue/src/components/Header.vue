@@ -1,7 +1,7 @@
 <template>
     <div class="header">
         <b-navbar toggleable="lg" type="dark" variant="dark">
-            <b-navbar-brand href="/">静岡県点群オープンデータマップ</b-navbar-brand>
+            <b-navbar-brand href="/">静岡県点群データマップ</b-navbar-brand>
             <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
             <b-collapse id="nav-collapse" is-nav>
                 <b-navbar-nav>
