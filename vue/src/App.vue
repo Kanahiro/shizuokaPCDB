@@ -1,11 +1,8 @@
 <template>
   <div id="app">
     <Header />
-    <MapPane id="mapPane" :ankens="ankens" @load="getMarker()"/>
-    <AnkenList
-      v-if="ankens.length > 0"
-      :ankens="ankens"
-    />
+    <MapPane @onGetData="reloadData"/>
+    <AnkenList v-if="ankens.length > 0" :ankens="ankens" />
     <Footer />
   </div>
 </template>
@@ -26,34 +23,13 @@ export default {
   },
   data() {
     return {
-      ankens:[],
+      ankens:[]
     }
   },
-  created() {
-      let vm = this
-      fetch("/markers")
-      .then(response => {
-          return response.json()
-      })
-      .then(data => {
-        //工事番号順にソートした配列を渡す
-        vm.ankens = data.ankenList.sort(function (a, b) {
-          if (a.no < b.no) {
-            return -1
-          }
-          if (a.no > b.no) {
-            return 1
-          }
-          return 0 
-        })
-        //this.$emit("onGetApiData", data)
-      })
-      .catch(error => {
-          console.log(error)
-          alert("エラーが発生しました。")
-      });
-  },
   methods: {
+    reloadData: function(ankens) {
+      this.ankens = ankens
+    }
   }
 }
 </script>

@@ -53,6 +53,37 @@ def getMarkers():
 
     #案件ごとの区切りは'?'、1案件中の区切りは':'である
     #取得した文字列をパースしてjsonとしてreturnする
+
+    #以下geojsonパターン
+    '''
+    ankensGeojson = {
+        "type":"FeatureCollection",
+        "features":[]
+    }
+
+    ankenList = allAnkenStr.split('?')
+    for anken in ankenList:
+        ankenInfo = anken.split(':')
+        #不適切なデータがあった場合、スキップする
+        if len(ankenInfo) != 4:
+            continue
+        feature = {
+            "type":"Feature",
+            "geometry":{
+                "type":"Point",
+                "coordinates":[ankenInfo[2], ankenInfo[3]]
+            },
+            "properties":{
+                "no":ankenInfo[0],
+                "name":ankenInfo[1]
+            }
+        }
+        ankensGeojson['features'].append(feature)
+    print(ankensGeojson)
+    return jsonify(ankensGeojson)
+    '''
+
+    #not geojson パターン
     ankensObj = {
         "ankenList":[]
     }
