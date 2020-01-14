@@ -1,99 +1,110 @@
 <template>
     <div class="mapPane">
-        <MglMap
-            class="MglMap"
-            :mapStyle="mapStyle"
-            :center="center"
+        <l-map
             :zoom="zoom"
-            :minZoom="zoom"
-            :maxZoom="maxZoom"
+            :center="center"
+            :preferCanvas="true"
         >
-            <MglNavigationControl
-                position="top-left"
-            ></MglNavigationControl>
-            <MglMarker
-                v-for="anken in ankens"
-                :key="anken.no"
-                :coordinates="latlonAry(anken)"
-            >
-                <MglPopup>
-                    <div>
-                        <a :href="makeUrl(anken.no)"><h6>{{ anken.name }}</h6></a>
-                    </div>
-                </MglPopup>
-            </MglMarker>
-        </MglMap>
+            <l-control-scale
+                position="bottomleft"
+                :imperial="false"
+                :metric="true"
+            ></l-control-scale>
+
+            <l-tile-layer
+                :name="tileProvider.name"
+                :visible="tileProvider.visible"
+                :url="tileProvider.url"
+                :attribution="tileProvider.attribution"
+            ></l-tile-layer>
+
+            <Vue2LeafletMarkerCluster :options="clusterOptions" >
+                <LMarker v-for="anken in ankens" :key="anken.no" :lat-lng="makeLatLng(anken)" >
+                    <LPopup :content="makeAnchor(anken)"></LPopup>
+                </LMarker>
+            </Vue2LeafletMarkerCluster>
+        </l-map>
     </div>
 </template>
 
 <script>
-    import Mapbox from "mapbox-gl";
+    import { latLng, icon, Icon } from 'leaflet'
     import {
-        MglMap,
-        MglNavigationControl,
-        MglMarker,
-        MglPopup
-    } from "vue-mapbox";
+        LMap,
+        LTileLayer,
+        LControlScale,
+        LMarker,
+        LPopup
+    } from 'vue2-leaflet';
+    import Vue2LeafletMarkerCluster from 'vue2-leaflet-markercluster'
 
     export default {
         name: 'MapPane',
         components: {
-            MglMap,
-            MglNavigationControl,
-            MglMarker,
-            MglPopup
-        },
-        props: {
-            ankens:Array
+            LMap,
+            LTileLayer,
+            LControlScale,
+            LMarker,
+            LPopup,
+            Vue2LeafletMarkerCluster
         },
         data() {
             return {
-                //以下のパラメータはすべてSizuokaPCDB準拠
-              center:[138.383789, 34.976564],
-              zoom:10,
-              minZoom:10,
-              maxZoom:18,
-              mapStyle: this.makeMapStyle("https://tile.openstreetmap.jp/{z}/{x}/{y}.png", "map data © OpenStreetMap contributors"),
+                center:[34.976564, 138.383789],
+                zoom:10,
+                tileProvider:{
+                    name: 'OpenStreetMap',
+                    visible: true,
+                    url: 'https://tile.openstreetmap.jp/{z}/{x}/{y}.png',
+                    attribution: "map data © OpenStreetMap contributors"
+                },
+                ankens:[],
+                clusterOptions:{
+                    disableClusteringAtZoom: 16
+                },
             }
         },
         methods: {
-            onloaded: function() {
-                this.map = Mapbox
+            makeLatLng: function(anken) {
+                return latLng(anken.lat, anken.lon)
             },
-            makeMapStyle: function(tileUrl, attribution) {
-                return {
-                    "version": 8,
-                    "sources": {
-                        "Raster": {
-                            "type": "raster",
-                            "tiles": [ tileUrl ],
-                            "tileSize": 256,
-                            "attribution": attribution
-                        }
-                    },
-                    "layers": [{
-                        "id": "RasterLayer",
-                        "type": "raster",
-                        "source": "Raster",
-                        "minzoom": 0,
-                        "maxzoom": 18
-                    }]
-                }
+            makeAnchor: function(anken) {
+                return "<a href='https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + anken.no + "'>" + anken.name + "</a>"
             },
-            latlonAry: function(event) {
-                return [event.lon, event.lat]
-            },
-            makeUrl: function(ankenNo) {
-                return "https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + ankenNo
-            }
         },
+        created() {
+            let vm = this
+            fetch("/markers")
+            .then(response => {
+                return response.json()
+            })
+            .then(data => {
+                vm.ankens = data.ankenList.sort(function (a, b) {
+                    if (a.no < b.no) {
+                        return -1
+                    }
+                    if (a.no > b.no) {
+                        return 1
+                    }
+                    return 0 
+                })
+                vm.$emit("onGetData", vm.ankens)
+            })
+            .catch(error => {
+                console.log(error)
+                alert("エラーが発生しました。")
+            });
+        }
     }
 </script>
 
 <style scoped>
+    @import "~leaflet.markercluster/dist/MarkerCluster.css";
+    @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
     .mapPane {
-        height: 500px;
-        margin: 5px;
         border: 1px solid #000000;
+        height: 500px;
+        margin: 0;
+        text-align: left;
     }
 </style>

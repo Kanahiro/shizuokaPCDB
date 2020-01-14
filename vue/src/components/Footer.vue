@@ -1,3 +1,4 @@
+  
 <template>
     <div class="footer">
         © {{ thisYear }} Kanahiro Iguchi.
