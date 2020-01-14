@@ -94,11 +94,21 @@ def getMarkers():
         #不適切なデータがあった場合、スキップする
         if len(ankenInfo) != 4:
             continue
+
+        #和暦を西暦に変換
+        yy = int(ankenInfo[0][:2])
+        #令和
+        if yy < 24:
+            yyyy = 2018 + yy
+        else:
+            yyyy = 1988 + yy
+
         ankenObj = {
             "no":ankenInfo[0],
             "name":ankenInfo[1],
             "lon":ankenInfo[2],
-            "lat":ankenInfo[3]
+            "lat":ankenInfo[3],
+            "year":yyyy
         }
         ankensObj['ankenList'].append(ankenObj)
     return jsonify(ankensObj)
