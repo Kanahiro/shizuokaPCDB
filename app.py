@@ -113,18 +113,42 @@ def getMarkers():
         ankensObj['ankenList'].append(ankenObj)
     return jsonify(ankensObj)
 
-@app.route('/ankenDetail/<ankenno>')
-def getApi(ankenno):
+import requests
+import bs4
+@app.route('/ankenDetail/<ankenNo>')
+def getAnkenDetail(ankenNo):
     params = {
-        'ankenno':ankenno
+        'ankenno':ankenNo
     }
     p = urllib.parse.urlencode(params)
     url = "https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?" + p
 
-    with urllib.request.urlopen(url) as res:
-        html = res.read().decode().replace(r"\n","")
-        jsonData = json.loads(html)
-        return jsonify(jsonData)
+    res = requests.get(url)
+    soup = bs4.BeautifulSoup(res.text, features='html.parser')
+    #<li>タグ
+    linkLists = soup.find_all("li")
+
+    #<li>タグ内の<a>タグ内のhref要素を全件取得
+    links = []
+    for li in linkLists:
+        links.append("https://pointcloud.pref.shizuoka.jp/lasmap" + li.a["href"][1:])
+
+    #tr要素すべて
+    trLists = soup.find_all("tr")
+
+    #請負業者
+    firm = trLists[2].td.string
+
+    #データ取得日
+    sampleDate = trLists[5].td.string
+
+    detailObj = {
+        "links":links,
+        "date":sampleDate,
+        "firm":firm
+    }
+
+    return detailObj
 
 if __name__ == "__main__":
     app.run()
