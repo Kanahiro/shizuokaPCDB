@@ -19,8 +19,8 @@
             ></l-tile-layer>
 
             <Vue2LeafletMarkerCluster :options="clusterOptions" >
-                <LMarker v-for="anken in ankens" :key="anken.no" :lat-lng="makeLatLng(anken)" >
-                    <LPopup :content="makeAnchor(anken)" @click="markerClicked(anken)"></LPopup>
+                <LMarker v-for="anken in ankens" :key="anken.no" :lat-lng="makeLatLng(anken)" @click="onMarkerClick(anken.no)">
+                    <LPopup :content="makeMarkerContent(anken)" ></LPopup>
                 </LMarker>
             </Vue2LeafletMarkerCluster>
         </l-map>
@@ -61,7 +61,11 @@
                 clusterOptions:{
                     disableClusteringAtZoom: 15
                 },
-                markerContent:""
+                markerContent:{
+                    "date":"",
+                    "firm":"",
+                    "links":[]
+                }
             }
         },
         props: {
@@ -71,11 +75,49 @@
             makeLatLng: function(anken) {
                 return latLng(anken.lat, anken.lon)
             },
-            makeAnchor: function(anken) {
-                return "<a href='https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + anken.no + "'>" + anken.name + "</a>"
+            makeMarkerContent: function(anken) {
+                let date = this.markerContent.date
+                let firm = this.markerContent.firm
+                let anchor = "<a href='https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?ankenno=" + anken.no + "'>" + anken.name + "</a>"
+                let links = ""
+                for (let key in this.markerContent.links) {
+                    let link = this.markerContent.links[key]
+                    links = links + "<li><a href='" + link + "'>" + anken.no + "-" + String(Number(key) + 1) + ".las</a></lin>" 
+                }
+
+
+                let content = "<h6>" + anchor + "</h6>" +
+                    "<table>" +
+                        "<tr><td>データ取得日</td><td>" + date + "</td></tr>" +
+                        "<tr><td>請負業者</td><td>" + firm + "</td></tr>" +
+                    "</table>" +
+                    "<div>" +
+                        "<span>データ一覧</span>" +
+                        links +
+                    "</div>"
+
+                return content
             },
-            markerClicked: function(anken) {
-                console.log("clicked")
+            onMarkerClick: function(ankenNo) {
+                let vm = this
+                vm.markerContent = {
+                    "date":"",
+                    "firm":"",
+                    "links":[]
+                }
+                fetch("/ankenDetail/" + ankenNo)
+                .then(response => {
+                    return response.json()
+                })
+                .then(data => {
+                    vm.markerContent.date = data.date
+                    vm.markerContent.firm = data.firm
+                    vm.markerContent.links = data.links
+                })
+                .catch(error => {
+                    console.log(error)
+                    alert("エラーが発生しました。")
+                });
             }
         },
     }

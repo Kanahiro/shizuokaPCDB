@@ -7,7 +7,6 @@
             <b-thead>
             <b-tr>
                 <b-th>データ年度</b-th>
-                <b-th>工事番号</b-th>
                 <b-th>工事名</b-th>
             </b-tr>
             </b-thead>
@@ -17,7 +16,6 @@
                 :key="anken.no"
             >
                 <b-th>{{ anken.year }}</b-th>
-                <b-th>{{ anken.no }}</b-th>
                 <b-th><a :href="makeUrl(anken.no)">{{ anken.name }}</a></b-th>
             </b-tr>
             </b-tbody>
