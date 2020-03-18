@@ -1,24 +1,8 @@
-from flask import Flask, request, jsonify, render_template
-
-app = Flask(__name__, static_folder='./vue/dist/static', template_folder='./vue/dist')
-
-@app.route('/')
-def index():
-	return render_template('index.html')
-
 import urllib.request, urllib.parse
 import json
-@app.route('/markers')
+import time
+
 def getMarkers():
-
-    #全件取得ではない場合はパラメータを取得してAPIにアクセス
-    '''
-    xMax = request.args.get('xMax')
-    xMin = request.args.get('xMin')
-    yMax = request.args.get('yMax')
-    yMin = request.args.get('yMin')
-    '''
-
     #全件取得するために、静岡県全域が含まれる緯度経度を整数値で設定
     xMax = 140
     xMin = 137
@@ -35,7 +19,6 @@ def getMarkers():
     p = urllib.parse.urlencode(params)
 
     url = "https://pointcloud.pref.shizuoka.jp/lasmap/ankenmapsrc?" + p
-    print(url)
 
     #上記で生成したURLパラメータでSIZUOKA POINT CLOUD DBにリクエストし案件一覧文字列を取得
     allAnkenStr = ""
@@ -52,38 +35,7 @@ def getMarkers():
     #29C2001011361:平成２９年度［第２９-Ｃ２００１-０１号］　伊豆半島の屋外広告物の実態調査業務委託（函南町道_1-2号線）:138.93794860595:35.083520492945
 
     #案件ごとの区切りは'?'、1案件中の区切りは':'である
-    #取得した文字列をパースしてjsonとしてreturnする
 
-    #以下geojsonパターン
-    '''
-    ankensGeojson = {
-        "type":"FeatureCollection",
-        "features":[]
-    }
-
-    ankenList = allAnkenStr.split('?')
-    for anken in ankenList:
-        ankenInfo = anken.split(':')
-        #不適切なデータがあった場合、スキップする
-        if len(ankenInfo) != 4:
-            continue
-        feature = {
-            "type":"Feature",
-            "geometry":{
-                "type":"Point",
-                "coordinates":[ankenInfo[2], ankenInfo[3]]
-            },
-            "properties":{
-                "no":ankenInfo[0],
-                "name":ankenInfo[1]
-            }
-        }
-        ankensGeojson['features'].append(feature)
-    print(ankensGeojson)
-    return jsonify(ankensGeojson)
-    '''
-
-    #not geojson パターン
     ankensObj = {
         "ankenList":[]
     }
@@ -111,11 +63,9 @@ def getMarkers():
             "year":yyyy
         }
         ankensObj['ankenList'].append(ankenObj)
-    return jsonify(ankensObj)
+    return ankensObj
 
-import requests
 import bs4
-@app.route('/ankenDetail/<ankenNo>')
 def getAnkenDetail(ankenNo):
     params = {
         'ankenno':ankenNo
@@ -123,8 +73,14 @@ def getAnkenDetail(ankenNo):
     p = urllib.parse.urlencode(params)
     url = "https://pointcloud.pref.shizuoka.jp/lasmap/ankendetail?" + p
 
-    res = requests.get(url)
-    soup = bs4.BeautifulSoup(res.text, features='html.parser')
+    opener = urllib.request.build_opener()
+    opener.addheaders = [
+        ('Referer', 'http://localhost'),
+        ('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36 Edg/79.0.309.65'),
+    ]
+
+    html = opener.open(url)
+    soup = bs4.BeautifulSoup(html, features='html.parser')
     #<li>タグ
     linkLists = soup.find_all("li")
 
@@ -151,4 +107,28 @@ def getAnkenDetail(ankenNo):
     return detailObj
 
 if __name__ == "__main__":
-    app.run()
+    ankensObj = getMarkers()
+    
+    #既に読み込んだ案件リスト
+    loaded_details = {}
+    with open('./json/details.json') as f:
+        loaded_details = json.load(f)
+
+    loaded_ankenNo = list(loaded_details.keys())
+
+    detailObj_list = loaded_details
+    for anken in ankensObj['ankenList']:
+        if anken['no'] in loaded_ankenNo:
+            continue
+
+        detailObj_list[anken['no']] = getAnkenDetail(anken['no'])
+        print(detailObj_list[anken['no']])
+        #スクレイピングの1秒制限
+        break
+        time.sleep(1)
+    
+    with open('./json/ankens.json', 'w') as f:
+        json.dump(ankensObj, f, indent=4, ensure_ascii=False)
+    with open('./json/details.json', 'w') as f:
+        json.dump(detailObj_list, f, indent=4, ensure_ascii=False)
+    
